@@ -1,0 +1,168 @@
+/* ===================================================
+      🌙 OFFICIAL DARK THEME — LIFEGUARD
+      Clean Neon Healthcare Dark UI
+===================================================*/
+
+html[data-theme="dark"] {
+  --bg1:#071423;
+  --bg2:#0a1c33;
+
+  --card:#0f213d;
+  --card-2:#10264a;
+
+  --text:#e8f3ff;
+  --muted:#b2c8ff;
+
+  --primary:#1ed4ff;
+  --primary2:#1eeac4;
+
+  --border:rgba(180,220,255,0.18);
+  --shadow:0 25px 55px rgba(0,0,0,.75);
+}
+
+/* 🌙 BODY */
+html[data-theme="dark"] body{
+  background: radial-gradient(circle at 10% 10%, #0d2045 0%, #071423 40%, #020910 90%);
+  color: var(--text);
+}
+
+/* 🌙 SIDEBAR */
+html[data-theme="dark"] aside.sidebar{
+  background:linear-gradient(180deg,#0c1b33,#081426);
+  border-right:1px solid rgba(255,255,255,0.12);
+  color:white;
+}
+
+html[data-theme="dark"] .menu a{
+  color:#e5f2ff;
+}
+
+html[data-theme="dark"] .menu a.active,
+html[data-theme="dark"] .menu a:hover{
+  background:linear-gradient(90deg,rgba(64,225,255,0.28),rgba(32,227,197,0.2));
+  box-shadow:0 0 22px rgba(74,212,255,0.5);
+}
+
+/* 🌙 CARDS */
+html[data-theme="dark"] .card{
+  background:linear-gradient(145deg,#102c55,#0d223f);
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+  color:#e9f2ff;
+  border-radius:14px;
+}
+
+/* 🌙 TEXT */
+html[data-theme="dark"] .small,
+html[data-theme="dark"] .muted,
+html[data-theme="dark"] p,
+html[data-theme="dark"] span,
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3{
+  color:#d9e9ff !important;
+}
+
+/* 🌙 INPUTS / TEXTAREA / SELECT */
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select{
+  background:#0a1730 !important;
+  color:white !important;
+  border:1px solid rgba(255,255,255,0.22) !important;
+  border-radius:10px;
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder{
+  color:#9bc7ff !important;
+}
+
+/* 🌙 QUICK CHECK BIG TEXTAREA FIX */
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] .symptom-box,
+html[data-theme="dark"] .quick-input {
+  background:linear-gradient(140deg,#0e264d,#091a36) !important;
+  color:#e8f3ff !important;
+  border:1px solid rgba(150,210,255,.35) !important;
+  box-shadow:0 0 25px rgba(0,200,255,0.35);
+}
+
+/* 🌙 BUTTONS */
+html[data-theme="dark"] .btn{
+  background:linear-gradient(90deg,#09c9ff,#0de3cf);
+  color:#001b29 !important;
+  font-weight:800;
+  box-shadow:0 0 28px rgba(9,201,255,.55);
+}
+
+html[data-theme="dark"] .btn:hover{
+  background:linear-gradient(90deg,#33dbff,#37ffd8);
+}
+
+/* 🌙 PANELS */
+html[data-theme="dark"] .pred-item{
+  background:linear-gradient(110deg,#112b4a,#0c2734);
+  border:1px solid rgba(255,255,255,0.12);
+}
+
+html[data-theme="dark"] .bar{
+  background:#0f3c42;
+}
+
+/* 🌙 PROGRESS */
+html[data-theme="dark"] .progress-ring{
+  box-shadow:0 0 30px rgba(74,212,255,0.55);
+}
+
+html[data-theme="dark"] .progress-center{
+  background:#08162e;
+  color:white;
+}
+
+/* 🌙 TIPS */
+html[data-theme="dark"] .tip{
+  background:linear-gradient(110deg,#163459,#12454f);
+  border:1px solid rgba(255,255,255,0.12);
+}
+
+/* 🌙 FOOTER */
+html[data-theme="dark"] .footer{
+  color:#9fbef5;
+}
+
+/* 🌙 LOGIN / SIGNUP */
+html[data-theme="dark"] .auth-container{
+  background:linear-gradient(160deg,#05142b,#071a3d,#081b44);
+}
+
+html[data-theme="dark"] .auth-card{
+  background:rgba(18,34,72,0.85);
+  border:1px solid rgba(255,255,255,0.18);
+  box-shadow:0 25px 60px rgba(0,0,0,.85);
+}
+
+html[data-theme="dark"] .auth-card h2{
+  color:#e6f5ff;
+}
+
+html[data-theme="dark"] .auth-card input{
+  color:white;
+  border-bottom:2px solid rgba(255,255,255,0.5);
+}
+
+html[data-theme="dark"] .auth-card input::placeholder{
+  color:#8fd6ff;
+}
+
+/* 🌙 SCROLLBAR */
+html[data-theme="dark"] ::-webkit-scrollbar{
+  width:10px;
+}
+html[data-theme="dark"] ::-webkit-scrollbar-track{
+  background:#061021;
+}
+html[data-theme="dark"] ::-webkit-scrollbar-thumb{
+  background:#38d5d5;
+  border-radius:10px;
+}

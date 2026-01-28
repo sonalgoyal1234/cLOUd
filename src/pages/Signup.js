@@ -1,0 +1,120 @@
+import React, { useState } from "react";
+import "./Auth.css";
+
+export default function Signup({ onSuccess, switchToLogin }) {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [pass, setPass] = useState("");
+  const [error, setError] = useState("");
+  const [strength, setStrength] = useState("");
+
+  /* ---------- PASSWORD STRENGTH CHECK ---------- */
+  const checkStrength = (value) => {
+    setPass(value);
+
+    let strengthScore = 0;
+
+    if (value.length >= 6) strengthScore++;
+    if (/[A-Z]/.test(value)) strengthScore++;
+    if (/[0-9]/.test(value)) strengthScore++;
+    if (/[^A-Za-z0-9]/.test(value)) strengthScore++;
+
+    if (strengthScore === 0) setStrength("");
+    else if (strengthScore <= 1) setStrength("Weak");
+    else if (strengthScore === 2) setStrength("Medium");
+    else setStrength("Strong");
+  };
+
+  const handleSignup = (e) => {
+    e.preventDefault();
+
+    if (!username.trim() || !email.trim() || !pass.trim()) {
+      setError("Please fill all fields");
+      return;
+    }
+
+    if (strength === "Weak" || strength === "") {
+      setError("Password is too weak. Please make it stronger.");
+      return;
+    }
+
+    localStorage.setItem(
+  "lg_user",
+  JSON.stringify({
+    name: username,
+    email: email,
+    password: pass, // 🔑 REQUIRED
+  })
+);
+
+
+    localStorage.setItem("lg_auth", "true");
+
+    if (onSuccess) onSuccess();
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="auth-card">
+        <h1>Create Account 🎉</h1>
+        <p className="sub">Join LifeGuard</p>
+
+        {error && <div className="error">{error}</div>}
+
+        <form onSubmit={handleSignup}>
+          <input
+            type="text"
+            placeholder="Enter Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+
+          <input
+            type="email"
+            placeholder="Email Address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Create Password"
+            value={pass}
+            onChange={(e) => checkStrength(e.target.value)}
+            required
+          />
+
+          {/* ---------- PASSWORD STRENGTH UI ---------- */}
+          {pass && (
+            <p
+              style={{
+                marginTop: "-5px",
+                marginBottom: "10px",
+                fontWeight: "bold",
+                color:
+                  strength === "Weak"
+                    ? "red"
+                    : strength === "Medium"
+                    ? "orange"
+                    : "green",
+              }}
+            >
+              Password Strength: {strength}
+            </p>
+          )}
+
+          <button className="btn-primary" type="submit">
+            Create Account
+          </button>
+        </form>
+
+        <p className="switch-text">
+          Already have an account?
+          <span onClick={switchToLogin}> Login</span>
+        </p>
+      </div>
+    </div>
+  );
+}
