@@ -784,6 +784,74 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb{
 }
 
 
+/* 🌸 CUTE HEALTH TREE */
+
+.health-tree-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+/* TREE */
+.tree.cute {
+  font-size: 4rem;
+  animation: treeFloat 5s ease-in-out infinite,
+             treeSway 6s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* Gentle floating */
+@keyframes treeFloat {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
+/* Gentle sway */
+@keyframes treeSway {
+  0% { rotate: 0deg; }
+  50% { rotate: 2deg; }
+  100% { rotate: 0deg; }
+}
+
+/* Growth pop when completed */
+.tree.grow-pop {
+  animation: growPop 0.6s ease-out;
+}
+
+@keyframes growPop {
+  0% { transform: scale(0.9); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* STAGE SCALING */
+.tree.sprout { transform: scale(1.05); }
+.tree.plant { transform: scale(1.15); }
+.tree.young-tree { transform: scale(1.25); }
+.tree.healthy-tree { transform: scale(1.35); }
+
+/* TEXT */
+.tree-info {
+  font-size: 0.85rem;
+  color: #cfe6f0;
+}
+
+.tree-stage {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.tree-desc {
+  color: #9fcfe0;
+}
+
+.tree-feedback {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #8af3c0;
+}
+
 
 
 
