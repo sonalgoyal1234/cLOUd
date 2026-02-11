@@ -5,26 +5,23 @@ const userSettingsSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  theme: {
-    type: String,
-    default: "light",
+
+  name: String,
+  gender: String,
+  avatar: String,
+
+  theme: String,      // maps dark/light
+  accent: String,
+
+  notifications: {
+    medicine: Boolean,
+    tips: Boolean,
+    checkup: Boolean,
   },
- notifications: {
-  medicine: Boolean,
-  tips: Boolean,
-  checkup: Boolean,
-},
-  language: {
-    type: String,
-    default: "English",
-  },
-  privacyMode: {
-    type: Boolean,
-    default: false,
-  },
+
+  language: String,
+  aiConsent: Boolean,
+  privacyMode: Boolean,
 });
 
-module.exports = mongoose.model(
-  "UserSettings",
-  userSettingsSchema
-);
+module.exports = mongoose.model("UserSettings", userSettingsSchema);

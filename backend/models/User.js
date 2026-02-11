@@ -16,8 +16,19 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    default: "user", // admin / lifeguard / user
+    default: "user",
   },
+
+  // ⭐ ADD THIS BLOCK
+  settings: {
+    gender: String,
+    avatar: String,
+    darkMode: Boolean,
+    accent: String,
+    notifications: Object,
+    aiConsent: Boolean,
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,

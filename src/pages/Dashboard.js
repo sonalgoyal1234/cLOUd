@@ -27,6 +27,14 @@ export default function Dashboard() {
 
   const [walletData, setWalletData] = useState(null);
   const [symptoms, setSymptoms] = useState([]);
+  const [reminders, setReminders] = useState([]);
+  useEffect(() => {
+  const saved =
+    JSON.parse(localStorage.getItem("lg_reminders_dashboard")) || [];
+  setReminders(saved);
+}, []);
+
+
 
  
 
@@ -41,7 +49,9 @@ useEffect(() => {
 
   /* =============== USER DATA =============== */
   const user = JSON.parse(localStorage.getItem("lg_user") || "{}");
-  const userKey = user?.email || "guest";
+const userKey = user.email || "guest";
+
+
 
    const [history, setHistory] = useState(
   JSON.parse(localStorage.getItem(`lg_history_${userKey}`)) || []
@@ -52,34 +62,16 @@ useEffect(() => {
 
   /* ========= LOAD / RESET PROGRESS PER USER ========= */
   useEffect(() => {
-    const today = new Date().toDateString();
+   const saved = JSON.parse(
+  localStorage.getItem(`lg_progress_${userKey}`) || "{}"
+);
 
-    const saved = JSON.parse(
-      localStorage.getItem(`lg_progress_${userKey}`) || "{}"
-    );
+setPoints(saved.points || 0);
+setPercent(saved.percent || 0);
+setAccepted(saved.accepted || false);
+setCompleted(saved.completed || false);
+setChallenge(saved.challenge || null);
 
-    if (saved.date === today) {
-      setPoints(saved.points || 0);
-      setPercent(saved.percent || 0);
-      setAccepted(saved.accepted || false);
-      setCompleted(saved.completed || false);
-      setChallenge(saved.challenge || null);
-    } else {
-      saveProgress({
-        date: today,
-        points: 0,
-        percent: 0,
-        accepted: false,
-        completed: false,
-        challenge: null,
-      });
-
-      setPoints(0);
-      setPercent(0);
-      setAccepted(false);
-      setCompleted(false);
-      setChallenge(null);
-    }
 
     const hr = new Date().getHours();
     if (lang === "hi") {
@@ -308,6 +300,8 @@ const analyzeHealth = () => {
 const health = analyzeHealth();
 
 
+const nextReminder =
+  reminders.length > 0 ? reminders[0] : null;
 
   return (
     <div className="dashboard-root">
@@ -418,14 +412,15 @@ const health = analyzeHealth();
       <div className="bottom-grid" style={{ marginTop: 25 }}>
         <div className="card reminder-card">
           <h4>⏰ {lang === "hi" ? "रिमाइंडर" : "Smart Reminders"}</h4>
-          <p>
-            {lang === "hi" ? "अगला रिमाइंडर" : "Next reminder"}:{" "}
-            <b>
-              {lang === "hi"
-                ? "ब्लड प्रेशर — शाम 7 बजे"
-                : "Blood Pressure — 7PM"}
-            </b>
-          </p>
+        <p>
+  Next reminder:{" "}
+  <b>
+    {nextReminder
+      ? `${nextReminder.text} — ${nextReminder.time}`
+      : "No reminders"}
+  </b>
+</p>
+
           <Link to="./reminders" className="btn-small">
             {lang === "hi" ? "रिमाइंडर देखें" : "Manage Reminders"}
           </Link>
@@ -435,16 +430,7 @@ const health = analyzeHealth();
         <div className="card wallet-card">
           <h4>💼 {lang === "hi" ? "मेडिकल वॉलेट" : "Medical Wallet"}</h4>
 
-          {walletData ? (
-            <p className="small">
-              {lang === "hi" ? "आखिरी अपलोड" : "Last upload"}:{" "}
-              <b>{walletData.name}</b> — {daysAgo(walletData.date)}
-            </p>
-          ) : (
-            <p className="small">
-              {lang === "hi" ? "अभी तक कोई अपलोड नहीं" : "No uploads yet"}
-            </p>
-          )}
+        
 
           <Link to="./wallet" className="btn-small">
             {lang === "hi" ? "वॉलेट खोलें" : "Open Wallet"}

@@ -24,6 +24,7 @@ export default function Login({ onSuccess, switchToSignup }) {
           password: pass,
         }
       );
+      console.log("LOGIN RESPONSE:", res.data);
 
       // Save user locally
       localStorage.setItem("lg_user", JSON.stringify(res.data.user));

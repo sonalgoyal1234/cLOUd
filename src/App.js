@@ -126,17 +126,7 @@ function MainApp() {
   const handleLogout = () => {
     localStorage.removeItem("lg_user");
 
-    Object.keys(localStorage).forEach((k) => {
-      if (
-        k.startsWith("lg_progress_") ||
-        k.startsWith("lg_wallet_last_upload_") ||
-        k.startsWith("lg_reminders_") ||
-        k.startsWith("lg_quickcheck_") ||
-        k.startsWith("lg_community_")
-      ) {
-        localStorage.removeItem(k);
-      }
-    });
+    
 
     window.location.href = "/";
   };
@@ -200,10 +190,6 @@ function MainApp() {
         >
           🚪 Logout
         </button>
-
-        <div style={{ marginTop: 20 }} className="small">
-          Built for rural India • Offline ready • English/Hindi
-        </div>
       </aside>
 
       {/* ---------- Main Content ---------- */}

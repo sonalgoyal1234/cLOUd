@@ -57,6 +57,7 @@ export default function SmartReminders() {
 
   /* ================= STATES ================= */
  const [reminders, setReminders] = useState([]);
+ 
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [newReminder, setNewReminder] = useState({
     type: "Medicine",
@@ -76,6 +77,12 @@ const remindersRef = useRef(reminders);
 useEffect(() => {
   remindersRef.current = reminders;
 }, [reminders]);
+useEffect(() => {
+  const saved =
+    JSON.parse(localStorage.getItem("lg_reminders_dashboard")) || [];
+  setReminders(saved);
+}, []);
+
 
 
   /* ================= INIT ================= */
@@ -116,6 +123,8 @@ const fetchReminders = async () => {
     }));
 
     setReminders(formatted);
+    localStorage.setItem("lg_reminders_dashboard", JSON.stringify(formatted));
+
   } catch (err) {
     console.error(err);
   }
@@ -283,6 +292,8 @@ const deleteReminder = (id) =>
       Swal.fire(t[lang].deleted, "", "success");
     }
   });
+  
+
 
   /* ================= UI ================= */
   return (

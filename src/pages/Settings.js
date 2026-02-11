@@ -20,7 +20,7 @@ export default function Settings() {
 
       personalization: "Personalization",
       darkMode: "Dark Mode",
-      accent: "Accent Theme",
+      // accent: "Accent Theme",
       language: "Language",
 
       notificationsTitle: "Notifications",
@@ -92,7 +92,7 @@ export default function Settings() {
   const userId = savedUser?._id;
 
   const [darkMode, setDarkMode] = useState(savedSettings.darkMode || false);
-  const [accent, setAccent] = useState(savedSettings.accent || "#14b8a6");
+  // const [accent, setAccent] = useState(savedSettings.accent || "#14b8a6");
   const [name, setName] = useState(savedUser.name || "User");
   const [gender, setGender] = useState(savedSettings.gender || "Female");
   const [avatar, setAvatar] = useState(savedSettings.avatar || "🙂");
@@ -129,16 +129,13 @@ export default function Settings() {
     else document.documentElement.removeAttribute("data-theme");
   }, [darkMode]);
 
-  /* ACCENT */
-  useEffect(() => {
-    document.documentElement.style.setProperty("--accent", accent);
-  }, [accent]);
+  // /* ACCENT */
+  // useEffect(() => {
+  //   document.documentElement.style.setProperty("--accent", accent);
+  // }, [accent]);
 
   /* SAVE SETTINGS */
- const save = async () => {
-  console.log("Saving settings...");
-  console.log("UserId:", userId);
-
+const save = async () => {
   try {
     await axios.post("http://localhost:5000/api/settings/save", {
       userId,
@@ -146,17 +143,22 @@ export default function Settings() {
       gender,
       avatar,
       darkMode,
-      accent,
+      // accent,
       notifications,
       aiConsent,
     });
 
-    Swal.fire("Saved!", "Settings stored in DB", "success");
+    // ✅ UPDATE LOCAL USER
+    const updatedUser = { ...savedUser, name };
+    localStorage.setItem("lg_user", JSON.stringify(updatedUser));
+
+    Swal.fire("Saved!", "Settings stored", "success");
   } catch (err) {
-  console.error("FULL ERROR:", err.response?.data || err);
-  Swal.fire("Error saving settings", "", "error");
-}
+    console.error(err);
+    Swal.fire("Error saving settings", "", "error");
+  }
 };
+
 
   /* CLEAR DATA */
   const clearAll = () => {
@@ -231,9 +233,9 @@ export default function Settings() {
 
         <Toggle label={t[lang].darkMode} checked={darkMode} onChange={setDarkMode} />
 
-        <InputRow label={t[lang].accent}>
+        {/* <InputRow label={t[lang].accent}>
           <input type="color" value={accent} onChange={(e) => setAccent(e.target.value)} />
-        </InputRow>
+        </InputRow> */}
 
         <InputRow label={t[lang].language}>
           <select value={lang} onChange={(e) => setLang(e.target.value)}>
