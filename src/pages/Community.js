@@ -1,13 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { LangContext } from "../App";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  orderBy,
-} from "firebase/firestore";
-import { db } from "../firebase";
+import axios from "axios";
+
 
 export default function Community() {
   const { lang } = useContext(LangContext);
@@ -63,43 +57,38 @@ export default function Community() {
   const [editComment, setEditComment] = useState({});
   const [editingCommentPostId, setEditingCommentPostId] = useState(null);
   const [editingCommentIndex, setEditingCommentIndex] = useState(null);
+  /* ================= FETCH POSTS FROM BACKEND ================= */
+useEffect(() => {
+  axios
+    .get("http://localhost:5000/api/community")
+    .then((res) => {
+      const formatted = res.data.map((p) => ({
+        id: p._id,
+        name: p.username,
+        text: p.postText,
+        likes: p.likes || 0,
+        comments: p.comments || [],
+        date: new Date(p.createdAt).toLocaleString(),
+      }));
+
+      if (formatted.length > 0) {
+        setPosts(formatted);
+      }
+    })
+    .catch((err) => console.log(err));
+}, []);
 
   /* ================= SAVE FUNCTION ================= */
   const savePosts = (updated) => {
     setPosts(updated);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   };
-  /* ================= FIREBASE LOAD POSTS ================= */
-const loadPostsFromFirebase = async () => {
-  try {
-    const q = query(
-      collection(db, "community_posts"),
-      orderBy("createdAt", "desc")
-    );
 
-    const snapshot = await getDocs(q);
-
-    if (!snapshot.empty) {
-      const firebasePosts = snapshot.docs.map((doc) => ({
-        id: doc.id,              // Firebase id
-        name: doc.data().name,
-        text: doc.data().text,
-        likes: doc.data().likes || 0,
-        comments: doc.data().comments || [],
-        date: doc.data().date || "Just now",
-      }));
-
-      setPosts(firebasePosts);
-    }
-  } catch (err) {
-    console.error("Firebase load failed, using local data", err);
-  }
-};
 
 
   /* ================= DEMO POSTS (USER SEPARATE) ================= */
   useEffect(() => {
-    loadPostsFromFirebase();
+   
     if (posts.length === 0) {
       const demo = [
         {
@@ -172,15 +161,12 @@ const loadPostsFromFirebase = async () => {
       comments: [],
       date: lang === "hi" ? "अभी" : "Just now",
     };
-    // 🔥 Save to Firebase (ADD ONLY)
-addDoc(collection(db, "community_posts"), {
-  name: "You",
-  text: newPost,
-  likes: 0,
-  comments: [],
-  date: lang === "hi" ? "अभी" : "Just now",
-  createdAt: new Date(),
+    axios.post("http://localhost:5000/api/community/add", {
+  userId: user._id,
+  username: user.name || "You",
+  postText: newPost,
 });
+    
 
 
     savePosts([newItem, ...posts]);

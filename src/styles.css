@@ -752,10 +752,10 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb{
 
 /* Glass card look */
 .wallet-root .card {
-  background: rgba(255,255,255,0.9);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  box-shadow: none;
+  backdrop-filter: none;
 }
 /* ================= SETTINGS BACKGROUND ================= */
 .settings-root {
@@ -851,6 +851,7 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb{
   font-size: 0.8rem;
   color: #8af3c0;
 }
+
 
 
 

@@ -1,8 +1,6 @@
 import React, { useState, createContext, useEffect } from "react";
 // import { Routes, Route, useNavigate, NavLink, useLocation } from "react-router-dom";
 import { Routes, Route, useNavigate, NavLink, useLocation } from "react-router-dom";
-import { collection, addDoc } from "firebase/firestore";
-import { db } from "./firebase";
 
 
 
@@ -66,23 +64,6 @@ export default function App() {
     else document.documentElement.removeAttribute("data-theme");
   }, []);
 
-    // 🔥 Firebase test (ADD ONLY – does not affect app)
-  useEffect(() => {
-    const testFirebase = async () => {
-      try {
-        await addDoc(collection(db, "system_logs"), {
-          app: "LifeGuard",
-          message: "Firebase connected successfully",
-          time: new Date(),
-        });
-        console.log("✅ Firebase Firestore connected");
-      } catch (err) {
-        console.error("❌ Firebase error:", err);
-      }
-    };
-
-    testFirebase();
-  }, []);
 
 
   const handleLoginSuccess = () => navigate("/app");

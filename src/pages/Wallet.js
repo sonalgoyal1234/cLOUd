@@ -1,28 +1,14 @@
 import React, { useState, useEffect } from "react";
-// 🔥 Firebase (ADD ONLY)
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from "firebase/storage";
-
-import {
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where,
-  orderBy,
-} from "firebase/firestore";
-
-import { db, storage } from "../firebase";
+import axios from "axios";
+import { useContext } from "react";
+import { LangContext } from "../App";
 
 
 export default function MedicalWallet() {
   // ⭐ Get Logged In User
-  
   const user = JSON.parse(localStorage.getItem("lg_user") || "{}");
-  const userKey = user?.uid || user?.email ||"guest";
+  const userKey = user?.uid || user?.email || "guest";
+  const API = "http://localhost:5000/api/medical-wallet";
 
   // ⭐ Use USER SPECIFIC STORAGE
   const STORAGE_KEY = `lg_medical_records_${userKey}`;
@@ -36,7 +22,8 @@ export default function MedicalWallet() {
   const [fileType, setFileType] = useState("");
   const [fileNotes, setFileNotes] = useState("");
   const [file, setFile] = useState(null);
-  const [lang, setLang] = useState("en");
+ const { lang } = useContext(LangContext);
+
 
   const t = {
     en: {
@@ -55,7 +42,6 @@ export default function MedicalWallet() {
       attached: "Attached File",
       viewPDF: "View PDF",
       delete: "Delete",
-      toggleLang: "Switch to Hindi 🇮🇳",
       alertAdd: "Record saved securely ✅",
       alertName: "Please enter record name!",
       alertDelete: "Delete this record?",
@@ -75,48 +61,35 @@ export default function MedicalWallet() {
       attached: "संलग्न फ़ाइल",
       viewPDF: "PDF देखें",
       delete: "हटाएं",
-      toggleLang: "Switch to English 🇬🇧",
       alertAdd: "रिकॉर्ड सुरक्षित रूप से जोड़ दिया गया ✅",
       alertName: "कृपया रिकॉर्ड का नाम लिखें!",
       alertDelete: "रिकॉर्ड हटाना चाहते हैं?",
     },
   };
-  /* ================= FIREBASE LOAD WALLET ================= */
-const loadWalletFromFirebase = async () => {
-  try {
-    const q = query(
-      collection(db, "wallet_items"),
-      where("userKey", "==", userKey),
-      orderBy("uploadedAt", "desc")
-    );
 
-    const snapshot = await getDocs(q);
+  /* ================= BACKEND FETCH ================= */
 
-    if (!snapshot.empty) {
-        const firebaseRecords = snapshot.docs.map((doc) => {
-          const d = doc.data();
-          return {
-            id: doc.id,
-            ...d,
-            date: d.uploadedAt?.toDate
-              ? d.uploadedAt.toDate().toLocaleDateString()
-              : "",
-          };
-        });
+  useEffect(() => {
+    fetchRecords();
+  }, []);
 
-        setRecords(firebaseRecords);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(firebaseRecords));
+  const fetchRecords = async () => {
+    try {
+      const res = await axios.get(API);
+      if (res.data.length > 0) {
+        setRecords(res.data);
       }
     } catch (err) {
-      console.error("Firebase wallet load failed", err);
+      console.error(err);
     }
   };
+
+  /* ================= LOCAL SAVE ================= */
 
   const saveRecords = (updated) => {
     setRecords(updated);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
 
-    // ⭐ Save last upload per user
     if (updated.length > 0) {
       const last = {
         name: updated[0].name,
@@ -125,6 +98,8 @@ const loadWalletFromFirebase = async () => {
       localStorage.setItem(LAST_UPLOAD_KEY, JSON.stringify(last));
     }
   };
+
+  /* ================= ADD RECORD ================= */
 
   const addRecord = async () => {
     if (!fileName.trim()) return alert(t[lang].alertName);
@@ -139,51 +114,59 @@ const loadWalletFromFirebase = async () => {
     };
 
     if (file) {
-      reader.onload = () => {
+      reader.onload = async () => {
         newRecord.fileData = reader.result;
         newRecord.fileName = file.name;
+
         saveRecords([newRecord, ...records]);
+
+        /* ⭐ BACKEND SAVE */
+        await axios.post(API, {
+         userId: "000000000000000000000000",
+          documentName: fileName,
+          documentType: fileType || "Document",
+          fileUrl: file.name,
+        });
+
         resetForm();
         alert(t[lang].alertAdd);
       };
       reader.readAsDataURL(file);
     } else {
       saveRecords([newRecord, ...records]);
+
+      /* ⭐ BACKEND SAVE */
+      await axios.post(API, {
+        userId: "000000000000000000000000",
+        documentName: fileName,
+        documentType: fileType || "Document",
+        fileUrl: "",
+      });
+
       resetForm();
       alert(t[lang].alertAdd);
     }
-    
-// 🔥 Save file + metadata to Firebase (ADD ONLY)
-if (file) {
-  const fileRef = ref(
-    storage,
-    `wallet_uploads/${userKey}/${Date.now()}_${file.name}`
-  );
-
-await uploadBytes(fileRef, file);
-const fileUrl = await getDownloadURL(fileRef);
-
-await addDoc(collection(db, "wallet_items"), {
-  userKey,
-  name: fileName,
-  type: fileType || "Document",
-  notes: fileNotes,
-  fileUrl,
-  fileName: file.name,
-  uploadedAt: new Date(),
-    });
-} else {
-  await addDoc(collection(db, "wallet_items"), {
-    userKey,
-    name: fileName,
-    type: fileType || "Document",
-    notes: fileNotes,
-    uploadedAt: new Date(),
-  });
-}
-
   };
-  
+
+  /* ================= DELETE ================= */
+const deleteRecord = async (id) => {
+  if (!window.confirm(t[lang].alertDelete)) return;
+
+  try {
+    // ⭐ If MongoDB record
+    if (id.length === 24) {
+      await axios.delete(`${API}/${id}`);
+      fetchRecords();
+    } 
+    // ⭐ If Local record
+    else {
+      saveRecords(records.filter((r) => r.id !== id));
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   const resetForm = () => {
     setFileName("");
@@ -192,30 +175,19 @@ await addDoc(collection(db, "wallet_items"), {
     setFile(null);
   };
 
-  const deleteRecord = (id) => {
-    if (!window.confirm(t[lang].alertDelete)) return;
-    saveRecords(records.filter((r) => r.id !== id));
-  };
-
   useEffect(() => {
     document.title = t[lang].title;
   }, [lang]);
 
-  useEffect(() => {
-  loadWalletFromFirebase(); // 🔥 ADD THIS
-}, []);
-
   return (
-    
     <div className="card" style={{ padding: 25 }}>
       <div style={{ textAlign: "right", marginBottom: 10 }}>
-        <button className="btn" onClick={() => setLang(lang === "en" ? "hi" : "en")}>
-          {t[lang].toggleLang}
-        </button>
+        
       </div>
 
       <h2>💼 {t[lang].title}</h2>
       <p className="muted">{t[lang].subtitle}</p>
+
       <div className="card">
         <h3>{t[lang].addRecord}</h3>
 
@@ -261,7 +233,7 @@ await addDoc(collection(db, "wallet_items"), {
         ) : (
           <div style={{ display: "grid", gap: 12 }}>
             {records.map((r) => (
-              <div className="card" key={r.id}>
+              <div className="card" key={r._id || r.id}>
                 <h4>
                   🗂 {r.name} <span className="small">({r.type})</span>
                 </h4>
@@ -273,39 +245,38 @@ await addDoc(collection(db, "wallet_items"), {
                 </p>
 
                 {(r.fileData || r.fileUrl) && (
-  <>
-    <p>
-      📎 <b>{t[lang].attached}:</b> {r.fileName}
-    </p>
+                  <>
+                    <p>
+                      📎 <b>{t[lang].attached}:</b> {r.fileName}
+                    </p>
 
-    {(r.fileData || r.fileUrl).includes("pdf") ? (
-      <a
-        href={r.fileData || r.fileUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="btn"
-      >
-        📄 {t[lang].viewPDF}
-      </a>
-    ) : (
-      <img
-        src={r.fileData || r.fileUrl}
-        alt={r.fileName}
-        style={{
-          maxWidth: "100%",
-          borderRadius: 10,
-          marginTop: 8,
-        }}
-      />
-    )}
-  </>
-)}
-
+                    {(r.fileData || r.fileUrl).includes("pdf") ? (
+                      <a
+                        href={r.fileData || r.fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn"
+                      >
+                        📄 {t[lang].viewPDF}
+                      </a>
+                    ) : (
+                      <img
+                        src={r.fileData || r.fileUrl}
+                        alt={r.fileName}
+                        style={{
+                          maxWidth: "100%",
+                          borderRadius: 10,
+                          marginTop: 8,
+                        }}
+                      />
+                    )}
+                  </>
+                )}
 
                 <button
                   className="btn"
                   style={{ background: "#ef4444" }}
-                  onClick={() => deleteRecord(r.id)}
+                  onClick={() => deleteRecord(r._id || r.id)}
                 >
                   🗑 {t[lang].delete}
                 </button>

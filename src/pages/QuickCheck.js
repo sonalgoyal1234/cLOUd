@@ -4,6 +4,7 @@ import { LangContext } from "../App";
 import "./ui-effects.css";
 import { FaHeartbeat } from "react-icons/fa";
 import { motion } from "framer-motion";
+import axios from "axios";
 
 const HOSPITALS = [
   {
@@ -22,6 +23,7 @@ const HOSPITALS = [
     phone: "1075",
   },
 ];
+const API = "http://localhost:5000/api/quick-check";
 
 
 
@@ -452,6 +454,19 @@ const analyzeSymptom = (input) => {
   useEffect(() => {
     return () => recognitionRef.current?.stop();
   }, []);
+  /* ⭐ BACKEND FETCH */
+useEffect(() => {
+  fetchChecks();
+}, []);
+
+const fetchChecks = async () => {
+  try {
+    const res = await axios.get(API);
+    console.log("Backend Quick Checks:", res.data);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   /* ================== ANALYZE ================== */
 const handleAnalyze = () => {
@@ -513,7 +528,7 @@ const detectLocation = () => {
 
 
   /* ================== SAVE ================== */
-  const saveResult = () => {
+  const saveResult = async () => {
     if (!predictions.length) return Swal.fire(text[lang].analyzeFirst);
 
     const entry = { symptom, predictions, date: new Date().toLocaleString() };
@@ -523,20 +538,31 @@ const detectLocation = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 
     Swal.fire(text[lang].savedDone);
+    /* ⭐ BACKEND SAVE */
+await axios.post(API, {
+  userId: "000000000000000000000000",
+  symptoms: [symptom],
+  result: predictions[0]?.name || "Unknown",
+});
   };
 
-  const clearResults = () => {
-    Swal.fire({
-      title: text[lang].clearAsk,
-      icon: "warning",
-      showCancelButton: true,
-    }).then((res) => {
-      if (res.isConfirmed) {
-        localStorage.removeItem(STORAGE_KEY);
-        setSavedResults([]);
-      }
-    });
-  };
+const clearResults = async () => {
+  Swal.fire({
+    title: text[lang].clearAsk,
+    icon: "warning",
+    showCancelButton: true,
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+
+      // ⭐ FRONTEND CLEAR
+      localStorage.removeItem(STORAGE_KEY);
+      setSavedResults([]);
+
+      // ⭐ BACKEND CLEAR
+      await axios.delete(API);
+    }
+  });
+};
 
   /* ================== UI ================== */
   /* ================== UI ================== */

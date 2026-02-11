@@ -1,15 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import Swal from "sweetalert2";
 import { LangContext } from "../App";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where,
-  orderBy,
-} from "firebase/firestore";
-import { db } from "../firebase";
+import axios from "axios";
 
 
 export default function SmartReminders() {
@@ -22,32 +14,10 @@ export default function SmartReminders() {
   /* ⭐ USER SPECIFIC STORAGE KEYS */
   const STORAGE_KEY = `smart_reminders_${userKey}`;
   const LAST_TRIGGER_KEY = `lg_last_trigger_${userKey}`;
+  const API = "http://localhost:5000/api/reminders";
 
   /* ================= LANGUAGE ================= */
-  /* ================= FIREBASE LOAD REMINDERS ================= */
-const loadRemindersFromFirebase = async () => {
-  try {
-    const q = query(
-      collection(db, "reminders"),
-      where("userKey", "==", userKey),
-      orderBy("createdAt", "asc")
-    );
 
-    const snapshot = await getDocs(q);
-
-    if (!snapshot.empty) {
-      const firebaseReminders = snapshot.docs.map((doc) => ({
-        id: doc.id, // Firebase id
-        ...doc.data(),
-      }));
-
-      setReminders(firebaseReminders);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(firebaseReminders));
-    }
-  } catch (err) {
-    console.error("Firebase reminder load failed, using local data", err);
-  }
-};
 
   const t = {
     en: {
@@ -86,10 +56,7 @@ const loadRemindersFromFirebase = async () => {
   };
 
   /* ================= STATES ================= */
-  
-  const [reminders, setReminders] = useState(
-    JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]")
-  );
+ const [reminders, setReminders] = useState([]);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [newReminder, setNewReminder] = useState({
     type: "Medicine",
@@ -116,7 +83,7 @@ useEffect(() => {
     alarmRef.current = new Audio("/alarm.mp3");
     alarmRef.current.preload = "auto";
     alarmRef.current.volume = 1.0;
-    loadRemindersFromFirebase();
+   
   }, []);
 
   useEffect(() => {
@@ -130,6 +97,30 @@ useEffect(() => {
       Notification.requestPermission();
     }
   }, []);
+  useEffect(() => {
+  fetchReminders();
+}, []);
+
+const fetchReminders = async () => {
+  try {
+    const res = await axios.get(API);
+
+    const formatted = res.data.map(r => ({
+      id: r._id,
+      _id: r._id,
+      text: r.medicineName,
+      type: r.dosage,
+      date: r.repeatDays?.[0],
+      time: r.time,
+      notified: false,
+    }));
+
+    setReminders(formatted);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   /* ================= SOUND ================= */
  const enableSound = async () => {
@@ -174,41 +165,40 @@ useEffect(() => {
   };
 
   /* ================= ADD REMINDER ================= */
-  const addReminder = () => {
-    if (!newReminder.text || !newReminder.date || !newReminder.time)
-      return Swal.fire(t[lang].fill);
+ const addReminder = async () => {
+  if (!newReminder.text || !newReminder.date || !newReminder.time)
+    return Swal.fire(t[lang].fill);
 
-    const entry = { ...newReminder, id: Date.now(), notified: false };
-    // 🔥 Save reminder to Firebase (ADD ONLY)
-addDoc(collection(db, "reminders"), {
-  userKey,
-  type: newReminder.type,
-  text: newReminder.text,
-  date: newReminder.date,
-  time: newReminder.time,
-  notified: false,
-  createdAt: new Date(),
-});
+  const entry = { ...newReminder, id: Date.now(), notified: false };
 
-    saveReminders([...reminders, entry]);
-    if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.ready.then((reg) => {
-    if (reg.active) {
-      reg.active.postMessage({
-        title: `⏰ ${newReminder.type}`,
-        body: newReminder.text,
-        time: `${newReminder.date}T${newReminder.time}:00`,
-      });
-    }
+  // ⭐ ADD BACKEND SAVE HERE
+  await axios.post(API, {
+    userId: user?._id || "dummyUserId",
+    medicineName: newReminder.text,
+    dosage: newReminder.type,
+    time: newReminder.time,
+    repeatDays: [newReminder.date],
   });
-}
+
+  fetchReminders();   // ⭐ reload list from DB
 
 
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.ready.then((reg) => {
+      if (reg.active) {
+        reg.active.postMessage({
+          title: `⏰ ${newReminder.type}`,
+          body: newReminder.text,
+          time: `${newReminder.date}T${newReminder.time}:00`,
+        });
+      }
+    });
+  }
 
-    Swal.fire(t[lang].addedTitle, t[lang].added, "success");
+  Swal.fire(t[lang].addedTitle, t[lang].added, "success");
 
-    setNewReminder({ type: "Medicine", text: "", date: "", time: "" });
-  };
+  setNewReminder({ type: "Medicine", text: "", date: "", time: "" });
+};
 
   /* ================= CHECK REMINDERS ================= */
   const showActivePopup = (r) => {
@@ -223,7 +213,8 @@ addDoc(collection(db, "reminders"), {
 useEffect(() => {
   const id = setInterval(() => {
     const now = new Date();
-    const d = now.toISOString().split("T")[0];
+    const d = now.toLocaleDateString("en-CA");
+
     const hhmm = now.toTimeString().slice(0, 5);
 
     remindersRef.current.forEach((r) => {
@@ -232,38 +223,30 @@ useEffect(() => {
         if (soundEnabled) playAlarm();
 
         // ✅ ALWAYS show popup when app is open
-Swal.fire({
-  title: `⏰ ${r.type}`,
-  text: r.text,
-  icon: "info",
-  confirmButtonText: "OK",
-});
+if (document.visibilityState === "visible") {
+  // App tab open → show popup
+  Swal.fire({
+    title: `⏰ ${r.type}`,
+    text: r.text,
+    icon: "info",
+    confirmButtonText: "OK",
+  });
+} else {
+  // App hidden → show system notification
+  if ("Notification" in window && Notification.permission === "granted") {
+    navigator.serviceWorker.ready.then((reg) =>
+      reg.showNotification(`⏰ ${r.type}`, {
+        body: r.text,
+        icon: "/icon-192.png",
+        vibrate: [200, 100, 200],
+      })
+    );
+  }
+}
+
 
 // ✅ ALSO show system notification if tab is not focused
-if (
-  document.visibilityState !== "visible" &&
-  "Notification" in window &&
-  Notification.permission === "granted"
-) {
-  navigator.serviceWorker.ready.then((reg) =>
-    reg.showNotification(`⏰ ${r.type}`, {
-      body: r.text,
-      icon: "/icon-192.png",
-      vibrate: [200, 100, 200],
-    })
-  );
-}
- else if (
-          "Notification" in window &&
-          Notification.permission === "granted"
-        ) {
-          navigator.serviceWorker.ready.then((reg) =>
-            reg.showNotification(`⏰ ${r.type}`, {
-              body: r.text,
-              icon: "/icon-192.png",
-            })
-          );
-        }
+
 
         const updated = remindersRef.current.map((x) =>
           x.id === r.id ? { ...x, notified: true } : x
@@ -281,56 +264,25 @@ if (
   return () => clearInterval(id);
 }, [soundEnabled]);
 
-  // useEffect(() => {
-  //   const id = setInterval(() => {
-  //     const now = new Date();
-  //     const d = now.toISOString().split("T")[0];
-  //     const hhmm = now.toTimeString().slice(0, 5);
-
-  //     reminders.forEach((r) => {
-  //       if (r.date === d && r.time === hhmm && !r.notified) {
-  //         if (soundEnabled) playAlarm();
-
-  //         window.focus();
-  //         // alert(`${r.type}: ${r.text}`);
-
-  //         if ("Notification" in window && Notification.permission === "granted") {
-  //           navigator.serviceWorker.ready.then((reg) =>
-  //             reg.showNotification(`⏰ ${r.type}`, {
-  //               body: r.text,
-  //               icon: "/icon-192.png",
-  //             })
-  //           );
-  //         }
-
-  //         const updated = reminders.map((x) =>
-  //           x.id === r.id ? { ...x, notified: true } : x
-  //         );
-
-  //         saveReminders(updated);
-
-  //         const stamp = new Date().toISOString();
-  //         setLastTriggered(stamp);
-  //         localStorage.setItem(LAST_TRIGGER_KEY, stamp);
-  //       }
-  //     });
-  //   }, 1000);
-
-  //   return () => clearInterval(id);
-  // }, [reminders, soundEnabled, lang]);
 
   /* ================= DELETE ================= */
-  const deleteReminder = (id) =>
-    Swal.fire({
-      title: t[lang].deleteTitle,
-      icon: "warning",
-      showCancelButton: true,
-    }).then((res) => {
-      if (res.isConfirmed) {
-        saveReminders(reminders.filter((r) => r.id !== id));
-        Swal.fire(t[lang].deleted, "", "success");
-      }
-    });
+const deleteReminder = (id) =>
+  Swal.fire({
+    title: t[lang].deleteTitle,
+    icon: "warning",
+    showCancelButton: true,
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+
+      // ⭐ BACKEND DELETE
+      await axios.delete(`${API}/${id}`);
+
+      // ⭐ REFRESH LIST FROM DB
+      fetchReminders();
+
+      Swal.fire(t[lang].deleted, "", "success");
+    }
+  });
 
   /* ================= UI ================= */
   return (
@@ -410,7 +362,7 @@ if (
       ) : (
         <div style={{ marginTop: 12, display: "grid", gap: 12 }}>
           {reminders.map((r) => (
-            <div className="card" key={r.id}>
+            <div className="card" key={r._id}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <div>
                   <b>{r.type}</b> — {r.text}
@@ -422,7 +374,7 @@ if (
                 <button
                   className="btn"
                   style={{ background: "#ef4444" }}
-                  onClick={() => deleteReminder(r.id)}
+                  onClick={() => deleteReminder(r._id)}
                 >
                   🗑
                 </button>

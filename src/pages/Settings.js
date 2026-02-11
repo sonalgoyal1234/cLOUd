@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { LangContext } from "../App";
 import Swal from "sweetalert2";
+import axios from "axios";
 
 export default function Settings() {
   const { lang, setLang } = useContext(LangContext);
@@ -88,6 +89,7 @@ export default function Settings() {
 
   const savedSettings = JSON.parse(localStorage.getItem("lg_settings") || "{}");
   const savedUser = JSON.parse(localStorage.getItem("lg_user") || "{}");
+  const userId = savedUser?._id;
 
   const [darkMode, setDarkMode] = useState(savedSettings.darkMode || false);
   const [accent, setAccent] = useState(savedSettings.accent || "#14b8a6");
@@ -133,23 +135,28 @@ export default function Settings() {
   }, [accent]);
 
   /* SAVE SETTINGS */
-  const save = () => {
-    localStorage.setItem("lg_user", JSON.stringify({ ...savedUser, name }));
+ const save = async () => {
+  console.log("Saving settings...");
+  console.log("UserId:", userId);
 
-    localStorage.setItem(
-      "lg_settings",
-      JSON.stringify({
-        darkMode,
-        accent,
-        gender,
-        avatar,
-        notifications,
-        aiConsent,
-      })
-    );
+  try {
+    await axios.post("http://localhost:5000/api/settings/save", {
+      userId,
+      name,
+      gender,
+      avatar,
+      darkMode,
+      accent,
+      notifications,
+      aiConsent,
+    });
 
-    Swal.fire(t[lang].swalSaveTitle, t[lang].swalSaveMsg, "success");
-  };
+    Swal.fire("Saved!", "Settings stored in DB", "success");
+  } catch (err) {
+  console.error("FULL ERROR:", err.response?.data || err);
+  Swal.fire("Error saving settings", "", "error");
+}
+};
 
   /* CLEAR DATA */
   const clearAll = () => {

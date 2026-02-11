@@ -2,12 +2,15 @@
   "name": "lifeguard-final-teal-prototype",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
+ "scripts": {
+  "start": "react-scripts start",
+  "build": "react-scripts build",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject",
+
+  "server": "nodemon backend/server.js",
+  "dev": "concurrently \"npm start\" \"npm run server\""
+},
   "dependencies": {
     "axios": "^1.13.2",
     "firebase": "^12.8.0",
@@ -28,6 +31,7 @@
       "not dead",
       "not op_mini all"
     ],
+    
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
