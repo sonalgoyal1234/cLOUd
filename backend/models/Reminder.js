@@ -1,21 +1,18 @@
 const mongoose = require("mongoose");
 
-const ReminderSchema = new mongoose.Schema({
-  userId: {
+const reminderSchema = new mongoose.Schema({
+  owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
 
-  medicineName: String,
-  dosage: String,
-  time: String,
-  repeatDays: [String],
-
-  createdAt: {
-    type: Date,
-    default: Date.now,
+  text: String,
+  date: Date,
+  completed: {
+    type: Boolean,
+    default: false,
   },
 });
 
-module.exports = mongoose.model("Reminder", ReminderSchema);
+module.exports = mongoose.model("Reminder", reminderSchema);

@@ -13,6 +13,8 @@ import {
 } from "recharts";
 
 export default function Dashboard() {
+    const user = JSON.parse(localStorage.getItem("lg_user") || "{}");
+  const userKey = user.email || "guest";
   const { lang } = useContext(LangContext);
 
   const [points, setPoints] = useState(0);
@@ -30,9 +32,10 @@ export default function Dashboard() {
   const [reminders, setReminders] = useState([]);
   useEffect(() => {
   const saved =
-    JSON.parse(localStorage.getItem("lg_reminders_dashboard")) || [];
+    JSON.parse(localStorage.getItem(`smart_reminders_${userKey}`)) || [];
   setReminders(saved);
-}, []);
+}, [userKey]);
+
 
 
 
@@ -40,16 +43,16 @@ export default function Dashboard() {
 
 useEffect(() => {
   const saved =
-    JSON.parse(localStorage.getItem("lg_quickcheck_results")) || [];
+    JSON.parse(localStorage.getItem(`lg_quickcheck_${userKey}`)) || [];
   setSymptoms(saved);
-}, []);
+}, [userKey]);
+
 
  
 
 
   /* =============== USER DATA =============== */
-  const user = JSON.parse(localStorage.getItem("lg_user") || "{}");
-const userKey = user.email || "guest";
+ 
 
 
 

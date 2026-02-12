@@ -1,7 +1,8 @@
 import React, { useState, useContext, useEffect } from "react";
 import { LangContext } from "../App";
 import Swal from "sweetalert2";
-import axios from "axios";
+import api from "../api";
+
 
 export default function Settings() {
   const { lang, setLang } = useContext(LangContext);
@@ -137,16 +138,16 @@ export default function Settings() {
   /* SAVE SETTINGS */
 const save = async () => {
   try {
-    await axios.post("http://localhost:5000/api/settings/save", {
-      userId,
-      name,
-      gender,
-      avatar,
-      darkMode,
-      // accent,
-      notifications,
-      aiConsent,
-    });
+   await api.post("/settings/save", {
+  name,
+  gender,
+  avatar,
+  darkMode,
+  notifications,
+  aiConsent,
+});
+
+
 
     // ✅ UPDATE LOCAL USER
     const updatedUser = { ...savedUser, name };

@@ -1,17 +1,19 @@
 const mongoose = require("mongoose");
 
-const QuickCheckSchema = new mongoose.Schema({
-  userId: {
+const quickCheckSchema = new mongoose.Schema({
+  owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
+    required: true,
   },
 
-  symptoms: [String],
-  result: String,
-  checkedAt: {
+  mood: String,
+  notes: String,
+
+  createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-module.exports = mongoose.model("QuickCheck", QuickCheckSchema);
+module.exports = mongoose.model("QuickCheck", quickCheckSchema);

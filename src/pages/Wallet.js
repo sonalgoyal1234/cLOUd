@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api";
+
 import { useContext } from "react";
 import { LangContext } from "../App";
 
@@ -8,7 +9,8 @@ export default function MedicalWallet() {
   // ⭐ Get Logged In User
   const user = JSON.parse(localStorage.getItem("lg_user") || "{}");
   const userKey = user?.uid || user?.email || "guest";
-  const API = "http://localhost:5000/api/medical-wallet";
+  const API = "/medical-wallet";
+
 
   // ⭐ Use USER SPECIFIC STORAGE
   const STORAGE_KEY = `lg_medical_records_${userKey}`;

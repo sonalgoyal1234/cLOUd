@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import Swal from "sweetalert2";
 import { LangContext } from "../App";
-import axios from "axios";
+import api from "../api";
+
 
 
 export default function SmartReminders() {
@@ -14,7 +15,8 @@ export default function SmartReminders() {
   /* ⭐ USER SPECIFIC STORAGE KEYS */
   const STORAGE_KEY = `smart_reminders_${userKey}`;
   const LAST_TRIGGER_KEY = `lg_last_trigger_${userKey}`;
-  const API = "http://localhost:5000/api/reminders";
+  const API = "/reminders";
+
 
   /* ================= LANGUAGE ================= */
 
@@ -110,7 +112,8 @@ useEffect(() => {
 
 const fetchReminders = async () => {
   try {
-    const res = await axios.get(API);
+    const res = await api.get(API);
+
 
     const formatted = res.data.map(r => ({
       id: r._id,
@@ -181,7 +184,8 @@ const fetchReminders = async () => {
   const entry = { ...newReminder, id: Date.now(), notified: false };
 
   // ⭐ ADD BACKEND SAVE HERE
-  await axios.post(API, {
+  await api.post(API, {
+
     userId: user?._id || "dummyUserId",
     medicineName: newReminder.text,
     dosage: newReminder.type,
@@ -284,7 +288,8 @@ const deleteReminder = (id) =>
     if (res.isConfirmed) {
 
       // ⭐ BACKEND DELETE
-      await axios.delete(`${API}/${id}`);
+      await api.delete(`${API}/${id}`);
+
 
       // ⭐ REFRESH LIST FROM DB
       fetchReminders();

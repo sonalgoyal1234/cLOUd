@@ -4,7 +4,8 @@ import { LangContext } from "../App";
 import "./ui-effects.css";
 import { FaHeartbeat } from "react-icons/fa";
 import { motion } from "framer-motion";
-import axios from "axios";
+import api from "../api";
+
 
 const HOSPITALS = [
   {
@@ -23,7 +24,8 @@ const HOSPITALS = [
     phone: "1075",
   },
 ];
-const API = "http://localhost:5000/api/quick-check";
+const API = "/quick-check";
+
 
 
 
@@ -461,7 +463,8 @@ useEffect(() => {
 
 const fetchChecks = async () => {
   try {
-    const res = await axios.get(API);
+    const res = await api.get(API);
+
     console.log("Backend Quick Checks:", res.data);
   } catch (err) {
     console.error(err);
@@ -539,11 +542,11 @@ const detectLocation = () => {
 
     Swal.fire(text[lang].savedDone);
     /* ⭐ BACKEND SAVE */
-await axios.post(API, {
-  userId: "000000000000000000000000",
+await api.post(API, {
   symptoms: [symptom],
   result: predictions[0]?.name || "Unknown",
 });
+
   };
 
 const clearResults = async () => {
@@ -559,7 +562,8 @@ const clearResults = async () => {
       setSavedResults([]);
 
       // ⭐ BACKEND CLEAR
-      await axios.delete(API);
+      await api.delete(API);
+
     }
   });
 };

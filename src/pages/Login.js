@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./Auth.css";
-import axios from "axios";
+import api from "../api";
+
 
 export default function Login({ onSuccess, switchToSignup }) {
   const [email, setEmail] = useState("");
@@ -17,13 +18,11 @@ export default function Login({ onSuccess, switchToSignup }) {
     }
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/users/login",
-        {
-          email: email,
-          password: pass,
-        }
-      );
+      const res = await api.post("/users/login", {
+  email,
+  password: pass,
+});
+
       console.log("LOGIN RESPONSE:", res.data);
 
       // Save user locally

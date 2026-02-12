@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { LangContext } from "../App";
-import axios from "axios";
+import api from "../api";
+
 
 
 export default function Community() {
@@ -59,8 +60,7 @@ export default function Community() {
   const [editingCommentIndex, setEditingCommentIndex] = useState(null);
   /* ================= FETCH POSTS FROM BACKEND ================= */
 useEffect(() => {
-  axios
-    .get("http://localhost:5000/api/community")
+  api.get("/community")
     .then((res) => {
       const formatted = res.data.map((p) => ({
         id: p._id,
@@ -71,12 +71,11 @@ useEffect(() => {
         date: new Date(p.createdAt).toLocaleString(),
       }));
 
-      if (formatted.length > 0) {
-        setPosts(formatted);
-      }
+      setPosts(formatted);
     })
     .catch((err) => console.log(err));
 }, []);
+
 
   /* ================= SAVE FUNCTION ================= */
   const savePosts = (updated) => {
@@ -161,11 +160,11 @@ useEffect(() => {
       comments: [],
       date: lang === "hi" ? "अभी" : "Just now",
     };
-    axios.post("http://localhost:5000/api/community/add", {
-  userId: user._id,
+   api.post("/community/add", {
   username: user.name || "You",
   postText: newPost,
 });
+
     
 
 
